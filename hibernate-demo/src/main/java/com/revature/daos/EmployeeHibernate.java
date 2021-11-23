@@ -60,7 +60,15 @@ public class EmployeeHibernate implements EmployeeDao{
 
 		try(Session s = HibernateUtil.getSessionFactory().openSession()){
 
-			Employee e = s.get(Employee.class, name);
+			CriteriaBuilder cb = s.getCriteriaBuilder();
+			CriteriaQuery cq = cb.createQuery(Employee.class);
+
+			Root<Employee> root = cq.from(Employee.class);
+			Predicate predicateForName = cb.equal(root.get("name"), name);
+
+			cq.select(root).where(predicateForName);
+
+			Employee e = (Employee) s.createQuery(cq).getSingleResult();
 
 			return e;
 		}
@@ -74,7 +82,7 @@ public class EmployeeHibernate implements EmployeeDao{
 	public List<Employee> getEmployees() {
 		try (Session s = HibernateUtil.getSessionFactory().openSession()){
 
-			List<Employee> employees = s.createQuery("from Employee", Employee.class).list();
+			List<Employee> employees = s.createQuery("from Employee", Employee.class).getResultList();
 
 			return employees;
 		}
@@ -95,7 +103,7 @@ public class EmployeeHibernate implements EmployeeDao{
 			CriteriaQuery<Employee> cq = cb.createQuery(Employee.class);
 			Root<Employee> root = cq.from(Employee.class);
 
-			Predicate forDeptId = cb.equal(root.get("deptId"), deptId);
+			Predicate forDeptId = cb.equal(root.get("id"), deptId);
 
 			cq.select(root).where(forDeptId);
 
